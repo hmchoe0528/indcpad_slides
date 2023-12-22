@@ -1,0 +1,317 @@
+\documentclass{beamer}
+\usetheme{metropolis}
+\usepackage[ruled, lined, linesnumbered, commentsnumbered]{algorithm2e}
+\usepackage{fourier}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{tikz,balance}
+
+\usetikzlibrary{calc, shapes, backgrounds, positioning, arrows, decorations, fit}
+\usepackage{pgfplots}
+\input{headers} %the file needs to be updated to the one used for S&P I guess
+\renewcommand*{\algorithmcfname}{Oracle}
+
+\usetikzlibrary{positioning, arrows.meta}
+
+\title{Attacks Against the $\sf{IND-CPA^D}$ Security of Exact FHE Schemes}
+
+\author{Jung Hee Cheon, Hyeongmin Choe, Alain Passelègue, Damien Stehlé, Elias Suvanto}
+\begin{document}
+	\begin{frame}[plain]
+	    \maketitle
+	\end{frame}
+	
+	\section{$KR^D$ security}
+
+	\begin{frame}{$\text{KR}^D$ security definition}
+		Shared state \textbf{S} consisting of tuples in $\mathcal{M} \times \mathcal{C}$:
+		\begin{algorithm}[H]
+			\scriptsize
+			\caption{Encryption oracle $\cO_\enc^\indcpad(\pk, m)$}
+			$\ct \gets \enc_{\pk}(m)$\\
+			$S.append(m, \ct)$\\
+			\Return{$\ct$}
+		\end{algorithm}
+		\begin{algorithm}[H]
+			\scriptsize
+			\caption{Evaluation oracle $\cO_\Eval^\indcpad(g, i_1, \dots, i_k)$}
+			$\ct \gets \Eval_{\evk}(g, S[i_1].\ct, \dots, S[i_k].\ct)$\\
+			$r := g(S[i].m_0, \dots, S[i_k].m)$\\
+			$S.append(r, \ct)$\\
+			\Return{$\ct$}
+		\end{algorithm}
+		
+		\begin{algorithm}[H]
+			\caption{Decryption oracle $\cO_\dec^\indcpad(\sk, j)$}
+			\Return{$\dec_\sk(S[j].\ct)$}\\
+		\end{algorithm}
+	Task: Recover the secret key $\sk$
+	\end{frame}
+
+	\begin{frame}{$KR \text{ security} \Leftrightarrow KR^D \text{ security}$}
+		\begin{center}
+		\begin{theorem}[LIMI21]
+			Any exact homomorphic encryption scheme $\mathcal{E}$ is $\indcpa$ secure if and only if it is $\indcpad$ secure.
+		\end{theorem}
+		\begin{proof}
+			Decryption can be simulated for correct HE scheme.
+		\end{proof}
+	\end{center}
+	
+		Lemma often used to argue that $\indcpad$ is a passive security notion that naturally extends $\indcpa$.
+	\end{frame}
+
+
+
+	\begin{frame}{(R)LWE ciphertext decryption structure}
+	TFHE, CKKS and BFV share the same (R)LWE decryption ciphertext structure
+	\begin{center}
+		\begin{tikzpicture}
+			% Main rectangle
+			\draw (0,0) rectangle (10,1);
+			
+			% First smaller rectangle with text
+			\draw [fill=orange!20, dotted](0.1,0.1) rectangle (0.9,0.9);
+			\node at (0.5,0.5) {(I)};
+			
+			% First smaller rectangle with text
+			\draw [fill=gray!20](1,0) rectangle (3,1);
+			\node at (2,0.5) {m};
+			
+			% Second smaller rectangle with text
+			\draw (3,0) rectangle (8,1);
+			\node at (3.5,0.5) {};
+			
+			% Third smaller rectangle with text
+			\draw [fill=blue!20](8,0) rectangle (10,1);
+			\node at (9,0.5) {LWE error e};
+		\end{tikzpicture}
+	\end{center}
+		\warning Decryption structure of a RLWE ciphertext $\ct=(\mathbf{b}, \mathbf{a})$.
+		Key-recovery attack: Compute $a^{-1} [\dec_\sk((\mathbf{b}, \mathbf{a})) - b] = \sk$.
+		\begin{center}
+			\begin{tabular}{|c|c|}
+				\hline
+				FHE scheme & Rounding? \\
+				\hline
+				BFV/BGV & \checkmark  \\
+				\hline
+				TFHE/FHEW & \checkmark  \\
+				\hline
+				CKKS & $\times$ \\
+				\hline
+			\end{tabular}
+		\end{center}
+		CKKS $KR^D$ security requires non worst case bounds.
+	\end{frame}
+	
+	\begin{frame}{KR$^D$ on BFV}
+		Encrypt a fresh ciphertext $\ct_0=$ of zero.
+		\begin{center}
+			\begin{tikzpicture}
+				% Main rectangle
+				\draw (0,0) rectangle (10,1);
+				
+				% First smaller rectangle with text
+				\draw [fill=gray!30](1,0) rectangle (3,1);
+				\node at (2,0.5) {m=0};
+			
+				
+				% Third smaller rectangle with text
+				\draw [fill=blue!20](8,0) rectangle (10,1);
+				\node at (9,0.5) {LWE error e};
+				\draw[<->] (3,-0.1) -- (10,-0.1);
+				\node at (6, -0.5) {$\Delta$};
+			\end{tikzpicture}
+		\end{center}
+	
+		Evaluate the ciphertext $\ct_{i+1}=\Eval_{\evk}(Add, i, i)$
+		\begin{center}
+			\begin{tikzpicture}
+				% Main rectangle
+				\draw (0,0) rectangle (10,1);
+				
+				% First smaller rectangle with text
+				\draw [fill=gray!30](1,0) rectangle (3,1);
+	
+				% Third smaller rectangle with text
+				\draw [fill=blue!20](4,0) rectangle (6,1);
+				\node at (5,0.5) {LWE error e};
+				\node[below] at (7,0) {$i$ bits}; % Length label
+			\end{tikzpicture}
+		\end{center}
+	Decrypt $\ct_{\log(\Delta)}$
+	\begin{center}
+		\begin{tikzpicture}
+			% Main rectangle
+			\draw (0,0) rectangle (10,1);
+			
+			% First smaller rectangle with text
+			\draw [fill=gray!30](1,0) rectangle (3,1);
+		
+			% Third smaller rectangle with text
+			\draw [fill=blue!20](1.1,0.1) rectangle (2.9,0.9);
+			\node at (2,0.5) {LWE error e};
+			\node[below] at (7,0) {$\log(\Delta)$ bits}; % Length label
+		\end{tikzpicture}
+	\end{center}
+	\end{frame}
+
+	\begin{frame}{KR$^D$ on TFHE}
+		\begin{figure}
+			\centering
+			\includegraphics[width=1\linewidth]{tfhebts}
+			\caption{TFHE bootstrapping}
+			\label{fig:tfhebts}
+		\end{figure}
+		
+	\end{frame}
+	\begin{frame}{erfc}
+	Let $e \sim \mathcal{N}(0, \sigma)$ and $t > 0$ a threshold bound, then
+		\[Pr[e > t] = \frac{1}{2} \text{erfc} \left(\frac{t}{\sqrt{2} \sigma} \right) \]
+	\end{frame}
+
+	\begin{frame}{TFHE Modulus Switch}
+		\begin{center}
+			\begin{tikzpicture}[node distance=3.5cm,>=latex']
+				
+				\tikzstyle{block} = [rectangle, draw, text centered, text width=3cm, minimum height=1.5cm, node distance=4cm, rounded corners]
+				\tikzstyle{arrow} = [->,>=latex']
+				
+				\node [block, fill=blue!30] (lwe) {LWE ($q=2^{64}$)\\ Var: $\sigma^2$};
+				\node [block, right of=lwe, fill=orange!30, rounded corners] (bootstrap) {Modulus\\ Switch};
+				\node [block, right of=bootstrap, fill=blue!30] (lwebr) {LWE ($q=2\cdot N$)\\Var: $\sigma^2 + \sigma_{MS}^2$};
+				
+				\draw [arrow] (lwe) -- (bootstrap);
+				\draw [arrow] (bootstrap) -- (lwebr);
+				\draw [<-,>=latex'] (bootstrap.north) -- ++(0,0.3cm) node[above, text width=3cm, align=center] {$\vec{e}_{MS} ~\in~[-2^{-2N-1}, 2^{-2N-1}]^{n+1}$};
+				
+			\end{tikzpicture}
+		\end{center}
+		The vector $\vec{e}_{MS}$ is $\textbf{public data}$ (computable from ciphertext).
+		\[e_{MS} := \langle \vec{e}_{MS}, \sk \rangle\]
+		The ciphertext is still correct with probability $pr_{MS}$ if we have
+		\[c_{MS} \cdot \sqrt{\sigma^2 + \sigma_{MS}^2} < \frac{\Delta}{2}\]
+		TFHE-rs uses $c_{MS} = 7.2$ by default.
+		\[erfc(\frac{7.2}{\sqrt{2}}) = 2^{-40}\]
+	\end{frame}
+
+	
+	\begin{frame}{$KR^D$ attack on TFHE}
+		\begin{block}{Decryption failure}
+			The Modulus Switch corrupts the message of the input LWE ciphertext with error $e$ if
+			\[e+e_{MS} \geq \frac{\Delta}{2}\]
+		\end{block}
+		\begin{block}{Primary source of decryption failure}
+			Other parts of PBS don't corrupt the underlying message of ciphertext with such a high probability.
+		\end{block}
+		\begin{block}{Estimating the security loss with such hints}
+			We fully recover the secret key of TFHE-rs (default parameters) with less than 256 decryption failures. How?
+		\end{block}
+	\end{frame}
+
+	\begin{frame}{Distributions of rounding error depending on corresponding secret key}
+		\begin{block}{Lemma}
+			Let~$\sigma,t>0$ and a secret key $s \in \{0,1\}^n$. Let $e_{MS} \sim \mathcal{U}([-1/2, 1/2]^n)$ 
+			and~$e_{preMS} \sim \mathcal{N}(0, \sigma^2)$. Let~$i \leq n$ and~$Y_i = \langle e_{MS}, s \rangle - e_{MS, i} s_i$.
+			The probability density function~$f$ of~$e_i$ conditioned on the event $\langle e_{MS}, s \rangle + e_{preMS} > t$ (i.e. failure) satisfies, for all~$x_i \in [-1/2,1/2]$: 
+			\[
+			f(x_i) = \left\{
+			\begin{array}{ll}
+				\frac{\Pr[x_i + Y_i + e_{preMS} > t]}{\Pr[  e_i + Y_i + e_{preMS} > t]}& \text{if } s_i=1, \\
+				1& \text{if } s_i = 0.
+			\end{array}\right.\]
+		\end{block}
+	\end{frame}
+
+	\begin{frame}{Distribution of public $e_{MS, i}$ conditioned on $s_i$}
+		\begin{figure}[h]
+			\centering
+
+			\caption{Distributions of the coefficients of $e$ conditioned on decryption failures, for the TFHE-rs library. The blue and orange curves respectively  depict the pdfs of~$e_{MS, i}$ when~$s_i=1$ and~$s_i=0$.
+			}
+			\includegraphics[width=0.7\linewidth]{krd_core.png}
+		\end{figure}
+	\end{frame}
+
+	\begin{frame}{KRD pseudocode}
+		\begin{figure}
+			\centering
+			\includegraphics[width=0.8\linewidth]{tkrd}
+			\caption{The output for each $i \leq n$ is incorrect with probability $O(\text{erfc}(\sqrt{f} \alpha))$}
+			\label{fig:tkrd}
+		\end{figure}
+	\end{frame}
+
+	\begin{frame}{Experimental results}
+		\begin{figure}
+			\centering
+			\includegraphics[width=0.7\linewidth]{exp}
+			\caption{Performance of the attack as a function of the number of decryption failures. The cyan and magenta curves respectively correspond to the custom parameter set and the TFHE-rs default parameters.}
+			\label{fig:tkrd}
+		\end{figure}
+	\end{frame}
+
+	\section{\indcpad security}
+	
+		\begin{frame}{$\text{IND-CPA}^D$ security definition}
+		\vspace*{-0.3cm}
+		Shared state \textbf{S} consisting of tuples in $\mathcal{M} \times \mathcal{M} \times \mathcal{C}$:
+		\begin{algorithm}[H]
+			\scriptsize
+			\caption{Encryption oracle $\cO_\enc^\indcpad(\pk, m_0, m_1)$}
+			$\ct \gets \enc_{\pk}(m_\mathbf{b})$\\
+			$S.append(m_0, m_1, \ct)$\\
+			\Return{$\ct$}
+		\end{algorithm}
+		\begin{algorithm}[H]
+			\scriptsize
+			\caption{Evaluation oracle $\cO_\Eval^\indcpad(g, i_1, \dots, i_k)$}
+			$\ct \gets \Eval_{\evk}(g, S[i_1].\ct, \dots, S[i_k].\ct)$\\
+			$r_0 := g(S[i_1].m_0, \dots, S[i_k].m_0)$\\
+			$r_1 := g(S[i_1].m_1, \dots, S[i_k].m_1)$\\
+			$S.append(r_0, r_1, \ct)$\\
+			\Return{$\ct$}
+		\end{algorithm}
+		
+		\begin{algorithm}[H]
+			\scriptsize
+			\caption{Decryption oracle $\cO_\dec^\indcpad(\sk, j)$}
+			\If{$S[j].m_0 = S[j].m_1$}{
+				$m \gets \dec_\sk(S[j].\ct)$\\
+				\Return{$m$}
+			}
+		\end{algorithm}
+		Task: Recover $\mathbf{b}$
+	\end{frame}
+
+	\begin{frame}{Trivial attack}
+		\hspace*{-0.5cm}
+		\begin{tabular}{ccc}
+			\underline{\bf Adv} & & \underline{\bf Challenger}\\
+			&&\\
+			&& ~~~$b \leftarrow \{0,1\}$\\
+			& $\xxrightarrow{11111111111111111111}{\enc \text{ query for }m_0=0,\,m_1=1}$ & ~~~$\ct_b \leftarrow \enc(\sk, m_b)$\\
+			& $\xxrightarrow{11111111111111111111}{\enc \text{ query for }m=0}$ & ~~~$\ct^* \leftarrow \enc(\sk, m)$\\
+			 \hline
+			\warning &Possible failure boosting & \warning\\ \hline \\
+			& $\xxrightarrow{11111111111111111111}{\Eval \text{ query}~C=AND; \,\ct_b, \,\ct^*}$ & ~~~$\ct_\text{res} \leftarrow \Eval(C; \ct, \ct^*)$\\
+			& $\xxrightarrow{11111111111111111111}{\dec \text{ query for }\ct_\text{res}}$ & ~~~$m_\text{res} \leftarrow \dec(\sk, \ct_\text{res})$\\
+			& $\xxleftarrow{11111111111111111111}{m_\text{res}}$&\\
+			$b' = m_{res}$&&\\
+		\end{tabular}
+		\begin{block}{Advantage}
+			The advantage is the decryption failure probability.
+		\end{block}
+	\end{frame}
+	
+	\begin{frame}{(In)security of Threshold FHE (foretaste)}
+		\begin{itemize}
+			\item $\Pi$ Treshold FHE: (Setup, Enc, Eval, \textbf{PDec}, \textbf{FinDec})
+			\item $\Pi^*$ FHE scheme: (Setup, Enc, Eval, \textbf{Dec}) where $\textbf{Dec}= \Pi.\text{FinDec}_{pk} (\{\Pi.\text{PDec}_{sk_i}(\cdot)\})$
+		\end{itemize}
+	
+		\[\Pi \text{ Threshold-Secure} \Rightarrow \Pi^* \text{ indcpa}^D \text{ secure}\]
+		N.B. Noah's Ark partial decryption can fail even if homomorphic evaluation is perfectly correct.
+	\end{frame}
+\end{document}
