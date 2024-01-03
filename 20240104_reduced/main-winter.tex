@@ -1,0 +1,740 @@
+% Deactivate/Activate pause
+\documentclass[handout]{beamer}
+% \documentclass{beamer}
+
+\usetheme{metropolis}
+\usepackage[ruled, lined, linesnumbered, commentsnumbered]{algorithm2e}
+\usepackage{fourier}
+\usepackage{amssymb}
+\usepackage{pifont}% http://ctan.org/pkg/pifont
+
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%\usepackage{amsmath}
+
+\setbeamerfont{bibliography item}{size=\scriptsize}
+\setbeamerfont{bibliography entry author}{size=\scriptsize}
+\setbeamerfont{bibliography entry title}{size=\scriptsize}
+\setbeamerfont{bibliography entry location}{size=\scriptsize}
+\setbeamerfont{bibliography entry note}{size=\scriptsize}
+
+\usepackage{tikz,balance,multicol,multirow}
+% for hdashline
+\usepackage{arydshln}
+
+
+\usetikzlibrary{calc, shapes, backgrounds, positioning, arrows, decorations, fit}
+\usepackage{pgfplots}
+\input{headers} % updated
+\renewcommand*{\algorithmcfname}{Oracle}
+
+\usetikzlibrary{positioning, arrows.meta}
+
+\title{{\indcpad} and {\krd} security of FHE and application to Threshold-FHE:\\
+{\small Attacks Against the \indcpad Security of Exact FHE Schemes.\vspace{-0.6cm}}}
+
+\author{\centering 
+Jung Hee Cheon, \underline{Hyeongmin Choe}, Alain Passelègue,\\ Damien Stehlé, Elias Suvanto
+}
+
+\date{
+\centering\vspace{0.5cm}
+Crypto Winter Camp 2024\\
+January, 4th, 2024.
+}
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%
+% title page
+%%%%%%%%%%%%%%%%%
+    \begin{frame}[plain]
+        \maketitle
+    \end{frame}
+
+%%%%%%%%%%%%%%%%%
+% Section 1: Definition
+%%%%%%%%%%%%%%%%%
+\section{\indcpad Security of FHEs:\\ {\normalsize Security Definitions}}
+
+    %%%%%
+    % IND-CPA
+    %%%%%
+    \begin{frame}{\indcpa Security}
+    \small
+    General security notion for FHE is \textcolor{blue}{\indcpa security}: 
+    \vspace{0.5cm}
+    \begin{figure}[ht!]
+    \centering
+    \renewcommand{\arraystretch}{1}
+    {\scriptsize
+        \begin{tabular}{ccc}
+        \underline{\bf \footnotesize $\cA$ (adversary)} & & \underline{\bf \footnotesize $\cC$ (challenger)}\\
+        &$\xxleftarrow{1111111111}{\pk}$& $(\sk, \pk) \leftarrow \keygen$, $b \leftarrow \{0,1\}$\\
+        \hdashline &&\\
+                
+        % enc/eval queries
+        \enc/\eval with \pk &&\\&&\\
+        \hdashline &&\\
+        
+        Guess bit $b$ & $\xxrightarrow{1111111111}{b'}$ & \\
+    \end{tabular}}
+    \caption{\small \indcpa security game. \label{fig:indcpa}}
+	\end{figure}
+    \end{frame}
+
+    %%%%%
+    % IND-CPA to IND-CPA^D
+    %%%%%
+    \begin{frame}{\indcpad Security?}
+    \small
+    \indcpad: \indcpa + \textcolor{blue}{\dec} oracle,
+    
+    \begin{figure}[ht!]
+    \centering
+    \renewcommand{\arraystretch}{1}
+    {\scriptsize
+        \begin{tabular}{ccc}
+        \underline{\bf \footnotesize $\cA$ (adversary)} & & \underline{\bf \footnotesize $\cC$ (challenger)}\\
+        &$\xxleftarrow{1111111111}{\pk}$& $(\sk, \pk) \leftarrow \keygen$, $b \leftarrow \{0,1\}$\\
+        \hdashline &&\\
+                
+        % enc/eval queries
+        \enc/\eval with \pk &&\\&&\\
+        \hdashline &&\\
+
+        % dec queries
+        \textcolor{blue}{\dec query} & \textcolor{blue}{$\xxrightarrow{1111111111}{\ct}$}&\\
+        &\textcolor{blue}{$\xxleftarrow{1111111111}{m}$}&\\
+        \hdashline &&\\
+        
+        Guess bit $b$ & $\xxrightarrow{1111111111}{b'}$ & \\
+    \end{tabular}}
+	\end{figure}\pause
+    ~~~but only to  \textcolor{blue}{legitimate} {$\ct$}'s. 
+    \vspace{0.5cm}\pause
+    
+    A definitional tool for \textcolor{blue}{legitimate} ciphertext is required:
+    \begin{center}
+        Shared state: $S \in \left( \mathcal{M} \times \mathcal{M} \times \mathcal{C} \right)^*$
+    \end{center}
+    \end{frame}
+
+    %%%%%
+    % IND-CPA to IND-CPA^D
+    %%%%%
+    \begin{frame}{\indcpad Security?}
+    \small    
+    \begin{center}
+        Shared state: $S \in \left( \mathcal{M} \times \mathcal{M} \times \mathcal{C} \right)^*$
+    \end{center}
+    \begin{figure}[ht!]
+    \centering
+    \renewcommand{\arraystretch}{1}
+    {\scriptsize
+        \begin{tabular}{ccc}
+        \underline{\bf \footnotesize $\cA$ (adversary)} & & \underline{\bf \footnotesize $\cC$ (challenger)}
+        \\
+        &$\xxleftarrow{1111111111}{\pk}$ & $(\sk, \pk) \leftarrow \keygen$, $b \leftarrow \{0,1\}$
+        \\
+        \hdashline &&\\
+
+        % enc queries
+        \multirow{1}{*}{$\cO_\enc$} & $\xxrightarrow{1111111111}{\cO_\enc (m_0, m_1)}$ & \multirow{2}{*}{\shortstack{$S.\sf{append}(m_0, m_1, \ct)$\\ where $\ct  = \enc_\pk(m_b)$}}\\
+        &$\xxleftarrow{1111111111}{\ct}$ \\
+        \hdashline &&\\
+        \pause
+
+        % eval queries
+        \multirow{2}{*}{$\cO_\eval$} & $\xxrightarrow{1111111111}{\cO_\eval (C, i_1, \cdots, i_k)}$ & \multirow{2}{*}{\shortstack{$S.\sf{append}(m_0^*, m_1^*, \ct^*),$ where\\ 
+        $m_i^* = C(S[i_1].m_i, \dots, S[i_k].m_i)$ for $i=0,1$,\\
+        $\ct^* \leftarrow \eval_\pk(C, S[i_1].\ct, \cdots, S[i_k].\ct)$}} \\
+        &$\xxleftarrow{1111111111}{\ct^*}$ \\
+        &&\\
+        \hdashline &&\\
+                
+        Guess bit $b$ & $\xxrightarrow{1111111111}{b'}$ & \\
+    \end{tabular}}\vspace{-0.2cm}
+	\end{figure}
+    \vspace{0.5cm}\pause
+     ..and \textcolor{blue}{\dec} oracle, which will allow decryption only when \textcolor{blue}{$m_0 = m_1$}.
+    \end{frame}
+    
+    %%%%%
+    % IND-CPA^D
+    %%%%%    
+    \begin{frame}{\indcpad Security}
+    \small
+    \begin{figure}[ht!]
+    \centering
+    \renewcommand{\arraystretch}{1}
+    {\scriptsize
+        \begin{tabular}{ccc}
+        \underline{\bf \footnotesize $\cA$ (adversary)} & & \underline{\bf \footnotesize $\cC$ (challenger)}\\
+        &$\xxleftarrow{1111111111}{\pk}$& $(\sk, \pk) \leftarrow \keygen$, $b \leftarrow \{0,1\}$\\
+        \hdashline &&\\
+                
+        % enc queries
+        \multirow{1}{*}{$\cO_\enc$} & $\xxrightarrow{1111111111}{\cO_\enc (m_0, m_1)}$ & \multirow{2}{*}{\shortstack{$S.\sf{append}(m_0, m_1, \ct)$\\ where $\ct  = \enc_\pk(m_b)$}}\\
+        &$\xxleftarrow{1111111111}{\ct}$ & \\
+        \hdashline &&\\
+        
+        % eval queries
+        \multirow{2}{*}{$\cO_\eval$} & $\xxrightarrow{1111111111}{\cO_\eval (C, i_1, \cdots, i_k)}$ & \multirow{3}{*}{\shortstack{$S.\sf{append}(m_0^*, m_1^*, \ct^*),$ where\\ 
+        $m_i^* = C(S[i_1].m_i, \dots, S[i_k].m_i)$ for $i=0,1$,\\
+        $\ct^* \leftarrow \eval_\pk(C, S[i_1].\ct, \cdots, S[i_k].\ct)$}} \\
+        &$\xxleftarrow{1111111111}{\ct^*}$ \\
+        &&\\
+        \hdashline &&\\
+        
+        % dec queries        
+        \multirow{1}{*}{\textcolor{blue}{$\cO_\dec$}} & $\xxrightarrow{1111111111}{\textcolor{blue}{\cO_\dec (j)}}$ & \multirow{2}{*}{\textcolor{blue}{\shortstack{if $S[j].m_0 = S[j].m_1$,\\
+        $m \leftarrow \dec_\sk(S[j].\ct)$
+        }}}\\
+        &\textcolor{blue}{$\xxleftarrow{1111111111}{m}$}\\
+        \hdashline &&\\
+        
+        Guess bit $b$ & $\xxrightarrow{1111111111}{b'}$ & \\
+    \end{tabular}}
+    \caption{\indcpad security game~\cite{EC:LiMic21}.}
+	\end{figure}
+    \end{frame}
+    
+    %%%%%
+    % KR^D
+    %%%%%    
+    \begin{frame}{\krd Security}
+    \small
+    \krd security can be similarly defined, but with ${S} \in (\cM \times \cC)^*$
+    \begin{figure}[ht!]
+    \centering
+    \renewcommand{\arraystretch}{1}
+    {\scriptsize
+        \begin{tabular}{ccc}
+        \underline{\bf \footnotesize $\cA$ (adversary)} & & \underline{\bf \footnotesize $\cC$ (challenger)}\\
+        &$\xxleftarrow{1111111111}{\pk}$& $(\sk, \pk) \leftarrow \keygen$\\
+        \hdashline &&\\
+                
+        % enc queries
+        \multirow{1}{*}{$\cO_\enc$} & $\xxrightarrow{1111111111}{\cO_\enc (m)}$ & \multirow{2}{*}{\shortstack{$S.\sf{append}(m, \ct)$\\ where $\ct  = \enc_\pk(m)$}}\\
+        &$\xxleftarrow{1111111111}{\ct}$ & \\
+        \hdashline &&\\
+        
+        % eval queries
+        \multirow{2}{*}{$\cO_\eval$} & $\xxrightarrow{1111111111}{\cO_\eval (C, i_1, \cdots, i_k)}$ & \multirow{3}{*}{\shortstack{$S.\sf{append}(m^*, \ct^*),$ where\\ 
+        $m^* = C(S[i_1].m, \dots, S[i_k].m)$,\\
+        $\ct^* \leftarrow \eval_\pk(C, S[i_1].\ct, \cdots, S[i_k].\ct)$}} \\
+        &$\xxleftarrow{1111111111}{\ct^*}$ \\
+        &&\\
+        \hdashline &&\\
+        
+        % dec queries        
+        \multirow{1}{*}{\textcolor{blue}{$\cO_\dec$}} & $\xxrightarrow{1111111111}{\textcolor{blue}{\cO_\dec (j)}}$ & \multirow{2}{*}{\textcolor{blue}{
+        $m \leftarrow \dec_\sk(S[j].\ct)$}}\\
+        &\textcolor{blue}{$\xxleftarrow{1111111111}{m}$} \\
+        \hdashline &&\\
+        
+        Guess $\sk$ & $\xxrightarrow{1111111111}{\sk'}$ & \\
+    \end{tabular}}\vspace{-0.2cm}
+    \caption{\krd security game\cite{EC:LiMic21}.}
+	\end{figure}
+    \end{frame}
+
+    %%%%%
+    % Li-Micciancio
+    %%%%%    
+    \begin{frame}{Prior Works}
+    \small
+    {\bf Note}, for FHEs,
+        \begin{itemize}
+            \item \indcpad security $\Rightarrow$ \indcpa security, 
+            \item \indcpad security $\Rightarrow$ \krd security.
+        \end{itemize}\vspace{0.2cm}\pause
+    
+	{\bf Li-Micciancio~\cite{EC:LiMic21}}: 
+    \begin{itemize}
+        \item For exact FHEs, \indcpa security $\Rightarrow$ \indcpad security.
+        \item This is not the case for approximate FHEs: 
+        \begin{itemize}
+            \item CKKS \krd attack: from additional information (error)
+        \end{itemize}
+    \end{itemize}\vspace{0.2cm}\pause
+
+    {\bf In the community}: 
+    \begin{center}
+        Exact FHEs, such as BFV/BGV,\\ and DM/CGGI schemes, are \indcpad secure!
+    \end{center}
+    \end{frame}
+
+    %%%%%
+    % Really?
+    %%%%%
+    
+    \begin{frame}{}
+    \begin{center}
+        {\Huge \bf Really?}
+    \end{center} 
+    \end{frame}
+
+%%%%%%%%%%%%%%%%%
+% Section 2: IND-CPA^D Insecurity
+%%%%%%%%%%%%%%%%%
+\section{\indcpad Security of FHEs:\\ {\normalsize Theoretical Results}}
+
+    %%%%%
+    % What if?
+    %%%%%    
+    \begin{frame}{What if?}
+
+    What if \textcolor{blue}{$\dec_\sk(\enc_\pk(m)) \neq m$}, a.k.a. decryption fails?\pause
+
+    What if \textcolor{blue}{$\dec_\sk(\eval_\pk(C, \ct_1, \cdots, \ct_k))$}
+
+    \hfill \textcolor{blue}{$\neq C(\dec_\sk(\ct_1), \dots, \dec_\sk(\ct_k))$},
+    a.k.a. evaluation fails? \vspace{0.5cm}\pause
+
+    $\Rightarrow$ $\cO_\enc$/$\cO_\eval$ will record $S[i] = (m_0, m_1, \ct)$, which satisfies 
+    \[
+        \dec_\sk(\ct) \neq m_b.
+    \]\pause
+
+    Can an attacker make a record $S[i] = (m_0, m_1, \ct)$, which satisfies $m_0 = m_1$, but $\dec_\sk(\ct) \neq m_0 (=m_1)$?\vspace{0.3cm}\pause
+        
+    And, even the decrypted result depends on $b$? 
+    \end{frame}
+
+    \begin{frame}{}
+    \begin{center}
+        {\Large \bf Yes, with the failing probability!}
+    \end{center} 
+    \end{frame}
+    
+    %%%%%
+    % Generic IND-CPA^D attack
+    %%%%% 
+	\begin{frame}{Generic \indcpad Attack}
+	\begin{figure}[ht!]
+    	\centering
+    	\renewcommand{\arraystretch}{1}
+    	{\small
+    		\begin{tabular}{ccc}
+                \underline{\bf $\cA$ (adversary)} & & \underline{\bf $\cC$ (challenger)}\\
+                &&\\
+    			&& $b \leftarrow \{0,1\}$\\
+    			
+    			& \hspace{-1.5cm}$\xxrightarrow{11111111111111111}{\cO_\enc (\texttt{T}, \texttt{F})}$ & $S[0] = (\texttt{T}, \texttt{F}, \ct_0)$\\
+    			
+    			& \hspace{-1.5cm}$\xxrightarrow{11111111111111111}{\cO_\enc (\texttt{F}, \texttt{F})}$ & $S[1] = (\texttt{F}, \texttt{F}, \ct_1)$\\
+
+        		& \hspace{-1.5cm}$\xxrightarrow{11111111111111111}{\cO_\eval (\textsf{AND}(\cdot, \cdot), 0, 1)}$ & \pause $S[2] = (\texttt{T}\wedge\texttt{F} = \texttt{F}, \texttt{F} \wedge \texttt{F} = \texttt{F}, \ct_2)$\\
+    			
+    			& \hspace{-1.5cm}$\xxrightarrow{11111111111111111}{\cO_\dec (2)}$ & $m_{\textsf{res}} \leftarrow \dec_\sk(\ct_2)$\\
+    			
+    			& \hspace{-1.5cm}$\xxleftarrow{11111111111111111}{m_{\textsf{res}} }$ &\\
+    			
+    			$b' = \begin{cases}
+    				0 & \text{if } m_{\textsf{res}} = \texttt{T} \enspace,\\
+    				1 & \text{else}.
+    			\end{cases}$ &&
+    	  \end{tabular}
+        }
+    	\caption{Generic and passive \indcpad attack on binary FHE. \label{fig:indcpad_bin_1}}
+    \end{figure}
+	\end{frame}
+
+    %%%%%
+    % Generic IND-CPA^D attack (explanation)
+    %%%%% 
+	\begin{frame}{Generic \indcpad Attack}
+	\begin{figure}[ht!]
+    	\centering
+    	\renewcommand{\arraystretch}{1}
+    	{\tiny
+    		\begin{tabular}{ccc}
+                \underline{\bf $\cA$ (adversary)} & & \underline{\bf $\cC$ (challenger)}\\
+    			&& $b \leftarrow \{0,1\}$\\
+    			
+                & \hspace{-1.5cm}$\xxrightarrow{11111111111111111}{\cO_\enc (\texttt{T}, \texttt{F}),~\cO_\enc (\texttt{F}, \texttt{F})}$ & $S[0] = (\texttt{T}, \texttt{F}, \ct_0)$, $S[1] = (\texttt{F}, \texttt{F}, \ct_1)$\\
+    			
+    			& \hspace{-1.5cm}$\xxrightarrow{11111111111111111}{\cO_\eval (\textsf{AND}(\cdot, \cdot), 0, 1)}$ & $S[2] = (\texttt{F}, \texttt{F}, \ct_2)$\\
+    			
+    			& \hspace{-1.5cm}$\xxrightarrow{11111111111111111}{\cO_\dec (2)}$ & $m_{\textsf{res}} \leftarrow \dec_\sk(\ct_2)$\\
+    			
+    			& \hspace{-1.5cm}$\xxleftarrow{11111111111111111}{m_{\textsf{res}} }$ &\\
+    			
+    			$b' = 0 \text{ if } m_{\textsf{res}} = \texttt{T} \enspace, \text{else } 1.$ &&
+    	  \end{tabular}
+        }
+    \end{figure}
+    {\small
+    \begin{itemize}
+        \item If no failure: $m_{\textsf{res}} = \texttt{F}$.\pause
+        \item If $ct_0$ encryption fails\footnote{We ignore multiple failures, which gives quadratic terms.}: $m_{\textsf{res}} = \texttt{F}$.\pause
+        \item If $ct_1$ encryption fails (say, event $A$): $m_{\textsf{res}} = \texttt{T} \wedge \texttt{T} = \texttt{T}$ if $b=0$, and\\
+        \hfill $\texttt{F} \wedge \texttt{T} = \texttt{F}$ if $b=1$.\pause
+        \item If \eval fails: $m_{\textsf{res}} = \texttt{T}$.\pause
+    \end{itemize}
+    Thus, for $p = \Pr[A]$, the advantage of $\cA$ becomes 
+        \begin{center}
+        $\Pr[b=b']$ $\approx$ $(1-p) \cdot \Pr[b=b'~ |~ \neg\text{A}] + p \cdot \Pr[b=b' ~|~ \text{A}] = \frac{1}{2} + \frac{p}{2}$. 
+        \end{center}
+    }
+	\end{frame}
+
+    %%%%%
+    % Generic IND-CPA^D attack (boosting)
+    %%%%% 
+	\begin{frame}{Boosting the \indcpad Attack}
+ 
+    {\small
+    \underline{\bf Boosting technique 1:} for $C(x_0, \dots, x_{N}) = (x_0 \wedge x_1) \vee \dots \vee (x_0 \wedge x_N)$, 
+    
+	\begin{figure}[ht!]
+    	\centering
+    	\renewcommand{\arraystretch}{1}
+    	{\scriptsize
+    		\begin{tabular}{ccc}
+                \underline{\bf $\cA$ (adversary)} & & \underline{\bf $\cC$ (challenger)}\\
+    			&& $b \leftarrow \{0,1\}$\\
+    			
+    			& \hspace{-2cm}$\xxrightarrow{11111111111111111}{\cO_\enc (\texttt{T}, \texttt{F})}$ & $S[0] = (\texttt{T}, \texttt{F}, \ct_0)$\\
+    			
+    			& \hspace{-2cm}$\xxrightarrow{11111111111111111}{\cO_\enc (\texttt{F}, \texttt{F}), \dots,~\cO_\enc (\texttt{F}, \texttt{F})}$ & $S[i] = (\texttt{F}, \texttt{F}, \ct_i)$ for $i=1,\dots,N$\\
+    			
+    			& \hspace{-2cm}$\xxrightarrow{11111111111111111}{\cO_\eval (C, 0, 1,\dots, N)}$ & $S[N+1] = (\texttt{F}, \texttt{F}, \ct_{N+1})$\\    			
+    			
+                & \hspace{-2cm}$\xxrightarrow{11111111111111111}{\cO_\dec (N+1)}$ & $m_{\textsf{res}} \leftarrow \dec_\sk(\ct_{N+1})$\\
+    			
+    			& \hspace{-2cm}$\xxleftarrow{11111111111111111}{m_{\textsf{res}} }$ &\\
+    			
+    			$b' = 0 \text{ if } m_{\textsf{res}} = \texttt{T} \enspace, \text{else } 1.$ &&
+    	  \end{tabular}
+        }
+    \end{figure}
+    Since $$C(\texttt{T}, \texttt{F}, \dots, \texttt{F}) = \texttt{F} = C(\texttt{F}, \texttt{F}, \dots, \texttt{F}),$$
+    $\Pr[b=b'] \approx (1-p)^N \cdot \frac{1}{2}+ \left(1-(1-p)^N \right) \cdot 1 \approx \frac{1}{2} + \frac{Np}{2}$.
+    }
+	\end{frame}
+
+    %%%%%
+    % Generic IND-CPA^D attack (boosting)
+    %%%%% 
+	\begin{frame}{Boosting the \indcpad Attack}
+ 
+    {\small
+    \underline{\bf Boosting technique 2:} Replace $\ct_i$'s by the evaluated ciphertexts with the highest possible probability: \pause\vspace{0.3cm}
+    
+    Let $C^*$ be a circuit of which $\ct = \eval_\pk(C^*, \ct^1, \dots, \ct^k)$ has a \textcolor{blue}{large (possibly maximum) failing probability $p^*$}, where $\ct^j$'s are random and freshly encrypted ciphertexts. \pause\vspace{0.3cm}
+    
+    Replacing $C$ by $C \circ (id, C^*, \dots, C^*): \cC^{Nk+1} \rightarrow \cC$ gives the advantage of $$1 + Np^*/2 \gg 1 + Np/2,$$ where $p$ is the failing probability of a freshly encrypted ciphertexts\footnote{Usually, $p^* \gg p$.}. \pause\vspace{0.2cm}
+
+    \underline{\bf Extension:} The attack can be extended from binary FHEs to \textcolor{blue}{general integer FHEs}, as $\{0, 1\}$ can be embedded in any ring :D
+    }
+	\end{frame}
+
+    %%%%%
+    % IND-CPA^D security conclusion
+    %%%%% 
+	\begin{frame}{Failing Probabilities}
+    Thus, the \textcolor{blue}{failing probability} of any FHE ciphertext \textcolor{blue}{should be negligible} along the whole homomorphic operations; HOWEVER,\vspace{0.3cm}\pause
+    
+    \begin{itemize}
+        \item {\bf DM/CGGI}
+            \begin{itemize}
+                \item {TFHE-rs}: $\mathsf{p}_\mathsf{fail} =2^{-40}$ (DEFAULT\_PARAMETERS set)
+                \item {{Concrete-Python}}: $\mathsf{p}_\mathsf{fail} =2^{-17}$ (default setting)
+                \item {Dahl et al.~\cite{cryptoeprint:2023/815}}: $\mathsf{p}_\mathsf{fail} =2^{-13.9}$
+            \end{itemize}\vspace{0.3cm}\pause
+        \item {\bf BFV/BGV}: Recent average-case approaches try to lower the correctness for more multiplicative levels:
+            \begin{itemize}
+                \item {Murphy, Player~\cite{EPRINT:MurPla19a}}: $\mathsf{p}_\mathsf{fail} =0.001 \approx 2^{-10}$
+                \item {Biasioli et al.~\cite{cryptoeprint:2023/600}}: $\mathsf{p}_\mathsf{fail} =2^{-36} \sim 2^{-80}$
+            \end{itemize}
+    \end{itemize}\vspace{0.3cm}\pause
+    \begin{center}
+        \textcolor{blue}{\indcpad-secure? :(}
+    \end{center}
+	\end{frame}
+
+%%%%%%%%%%%%%%%%%
+% Section 3: KR^D Insecurity
+%%%%%%%%%%%%%%%%%
+\section{\krd Security of FHEs:\\ {\normalsize Practical Results}}
+
+    %%%%%
+    % BFV
+    %%%%%  
+    \begin{frame}{}
+    \begin{center}
+        {\Huge \bf BFV}
+    \end{center} 
+    \end{frame}    
+    
+    %%%%%
+    % Average-case analysis
+    %%%%%    
+    \begin{frame}{Average-case Analysis on BFV}
+
+    {\small
+    RLWE ciphertext: $\ct = (\veca, \vecb = \veca\vecs + \Delta \vecm + \vece) \in \cR_Q^2$, $\operatorname{Var}(\vece) = \sigma^2$:
+        \begin{figure}[ht!]
+    	\centering
+    	\begin{tikzpicture}[scale=0.8, every node/.style={scale=0.8}]
+    		% Main rectangles
+    		\draw (0,0) rectangle (6.5,1) {};
+    		\node[anchor=east] at (0,0.5) {$\enc_\pk(0)=$};
+    		
+    		% Message rectangles
+    		\draw [fill=gray!30](0,0) rectangle (1.5,1);
+    		\node at (0.75,0.5) {$\vecm={\bf 0}$};
+    		
+    		% Error rectangles
+    		\draw [fill=blue!20](5.5,0) rectangle (6.5,1);
+    		\node at (6,0.5) {$\vece$};
+    		
+    		% Modulus
+    		\draw[<->] (0,1.1) -- (1.5-0.01,1.1) node[pos=0.5, above] {$t$};
+    		\draw[<->] (1.5+0.01,1.1) -- (6.5,1.1) node[pos=0.5, above] {$\Delta$};    
+        \end{tikzpicture}
+        \end{figure}
+    $\Rightarrow \mathsf{p}_\mathsf{fail} = \operatorname{erfc}\left(t/\sqrt{2 \cdot \operatorname{Var}(e)}\right)$\vspace{0.5cm}\pause
+
+    For $\ct + \ct'$, 
+    \begin{itemize}
+        \item Average-case analysis: $\operatorname{Var}(e+e') = 2\sigma^2$, assuming $\ct$ and $\ct'$ are independent.
+        \item In the worst case ($\ct = \ct'$), $\operatorname{Var}(2e) = {4} \sigma^2$: $\mathsf{p}_\mathsf{fail}^\mathsf{worst} \gg \mathsf{p}_\mathsf{fail}^\mathsf{avg}$
+    \end{itemize}\pause
+    \begin{center}
+        This gap makes the problem.
+    \end{center}
+    }
+    \end{frame}
+
+    %%%%%
+    % KR^D Attack on BFV (figure)
+    %%%%%    
+    \begin{frame}{\krd Attack on BFV} 
+
+    {\small
+    {\bf Iterative addition attack\footnote{\scriptsize Similar to the attack by Guo et al.~\cite{294637}, targeted Li and Micciancio's \indcpad-secure CKKS~\cite{C:LMSS22}, implemented in OpenFHE.}}: After $k$ additions, error $e$ blows up to $2^ke$, which will be decrypted to
+    \[
+        \round{({2^ke \bmod q})/{\Delta}} \approx e,
+    \]
+    if $2^k \approx \Delta$.\pause
+
+    {\footnotesize
+        \begin{figure}[ht!]
+    	\centering
+    	\begin{tikzpicture}[scale=0.8, every node/.style={scale=0.8}]
+    		% Main rectangles
+    		\draw (0,0) rectangle (6.5,1) {};
+    		\node[anchor=east] at (0,0.5) {\small $\ct_0=$};
+    		\draw (0,0-1.6) rectangle (6.5,1-1.6) {};
+    		\node[anchor=east] at (0,0.5-1.6) {\small $\ct_{i+1}=$};
+    		\draw (0,0-3.2) rectangle (6.5,1-3.2) {};
+    		\node[anchor=east] at (0,0.5-3.2) {\small $\ct_k=$};
+    		
+    		% Message rectangles
+    		\draw [fill=gray!30](0,0) rectangle (1.5,1);
+    		\node at (0.75,0.5) {$\vecm={\bf 0}$};
+    		\draw [fill=gray!30](0,0-1.6) rectangle (1.5,1-1.6);
+    		\node at (0.75,0.5-1.6) {};
+    		\draw [fill=gray!30](0,0-3.2) rectangle (1.5,1-3.2);
+    		\node at (0.75,0.5-3.2) {};
+    		
+    		% Error rectangles
+    		\draw [fill=blue!20](5.5,0) rectangle (6.5,1);
+    		\node at (6,0.5) {$\vece$};
+    		\draw [fill=blue!20](5.5-2.5,0-1.6) rectangle (6.5-2.5,1-1.6);
+    		\node at (6-2.5,0.5-1.6) {$\vece$};
+    		\draw [fill=blue!20](5.5-5,0-3.2) rectangle (6.5-5,1-3.2);
+    		\node at (6-5,0.5-3.2) {$\vece$};
+    		
+    		% Modulus
+    		\draw[<->] (0,1.1) -- (1.5-0.01,1.1) node[pos=0.5, above] {$t$};
+    		\draw[<->] (1.5+0.01,1.1) -- (6.5,1.1) node[pos=0.5, above] {$\Delta$};
+    		
+    		% vdots
+    		\node at (3.25, -0.17) {$\vdots$};
+    		\node at (3.25, -0.17-1.6) {$\vdots$};
+    
+        \end{tikzpicture}
+        \end{figure} 
+    }\pause
+
+    Note, average-case approach will allow this, since $\mathsf{p}_\mathsf{fail}^\mathsf{worst} \gg \mathsf{p}_\mathsf{fail}^\mathsf{avg}$. 
+    }\vspace{0.1cm}
+    \end{frame}
+
+    %%%%%
+    % KR^D Attack on BFV (result)
+    %%%%%    
+    \begin{frame}{\krd Attack on BFV} 
+
+    {
+
+    For a typical choice of OpenFHE 128-bit secure parameter set, \vspace{0.3cm}
+    
+    $N = 2^{12}$, $q=2^{60}$, $t = 2^{16}+1$, $\operatorname{std.dev}(e) = 2^{7.41}$, and thus $\Delta = \round{q/t} = 2^{44}-\varepsilon$, for some small $\varepsilon$, \vspace{0.3cm}
+    
+    we could experimentally reveal the exact error with $k=44$ iterations as
+    \[
+        \round{({2^{44}\vece \bmod 2^{60}})/(2^{44}-\varepsilon)} = \vece + \round{\varepsilon\vece / (2^{44}-\varepsilon)} = \vece,
+    \]
+    unless $\Vert\vece\Vert_\infty$ is too large. 
+    }
+    \end{frame}
+
+    %%%%%
+    % CGGI
+    %%%%%  
+    \begin{frame}{}
+    \begin{center}
+        {\Huge \bf CGGI}
+    \end{center} 
+    \end{frame}   
+    
+    %%%%%
+    % CGGI Modulus Switch
+    %%%%%
+	\begin{frame}{CGGI Modulus Switch}
+		\begin{center}
+			\begin{tikzpicture}[node distance=3.5cm,>=latex']
+				
+				\tikzstyle{block} = [rectangle, draw, text centered, text width=3cm, minimum height=1.5cm, node distance=4cm, rounded corners]
+				\tikzstyle{arrow} = [->,>=latex']
+				
+				\node [block, fill=blue!30] (lwe) {$\mathsf{LWE}_{q \approx 2^{32}}$\\ Var$(\vece) = \sigma^2$};
+				\node [block, right of=lwe, fill=orange!30, rounded corners] (bootstrap) {Modulus\\ Switch};
+				\node [block, right of=bootstrap, fill=blue!30] (lwebr) {\small $\mathsf{LWE}_{2 N \approx 2^{10}}$\\Var$(\vece + \vece_{MS}) = \sigma^2 + \sigma_{MS}^2$};
+				
+				\draw [arrow] (lwe) -- (bootstrap);
+				\draw [arrow] (bootstrap) -- (lwebr);
+				
+			\end{tikzpicture}
+		\end{center}
+        \[
+            \ct \mapsto \round{\ct\cdot 2N / q}
+        \]
+  
+		Modulus Switching error: $\vece_{MS} := \langle \vec{e}_{MS}, \sk \rangle$, $\operatorname{Var}(\vec{e}_{MS}) = \sigma_{MS}^2 \gtrsim \sigma^2$. \vspace{0.3cm}\pause
+
+        Modulus Switching failure: $\vece + \langle \vec{e}_{MS}, \sk \rangle > t$, for a threshold $t$, with probability 
+        \[
+        \mathsf{p}_\mathsf{fail} = \operatorname{erfc}\left(t/{\sqrt{2 (\sigma^2 + \sigma_{MS}^2)} }\right) \approx 2^{-40}.
+        \]
+	\end{frame}
+
+    %%%%%
+    % CGGI KR^D attack
+    %%%%%
+	\begin{frame}{$KR^D$ attack on CGGI}
+
+    {\small \vspace{-0.1cm}
+		\begin{block}{Lemma.}\vspace{0.1cm}
+			Let~$Y_i = \langle \vec{e}_{MS}, \sk \rangle - e_{MS, i} \cdot \sk_i$.
+			The probability density function~$f$ of~$e_{MS,i}$ conditioned on the event $\langle \vec{e}_{MS}, \sk \rangle + e > t$ (i.e. failure) satisfies, for all~$x \in [-1/2,1/2]$: 
+			\[
+			f(x) = \left\{
+			\begin{array}{ll}
+				\frac{\Pr[x + Y_i + e > t]}{\Pr[ \langle \vec{e}_{MS}, \sk \rangle + e > t]}& \text{if } \sk_i=\textcolor{blue}{1}, \\
+				1& \text{if } \sk_i = \textcolor{orange}{0}.
+			\end{array}\right.\]
+		\end{block}\vspace{-0.3cm}\pause
+    }
+
+        \begin{figure}[h]
+            \centering
+            \includegraphics[width=0.4\linewidth]{slope.png}
+            \caption{Distribution of $e_{MS, i}$ conditioned on decryption failures (pdf $f$). }
+        \end{figure}
+	\end{frame}
+ 
+	\begin{frame}{Experimental results}
+		\begin{figure}
+			\centering
+			\includegraphics[width=0.7\linewidth]{exp}
+			\caption{Performance of the attack with $f$ decryption failing ciphertexts for experimental result for a \textcolor{cyan}{custom parameter} set and simulated result for \textcolor{magenta}{TFHE-rs DEFAULT\_PARAMETERS} set.}
+			\label{fig:tkrd}
+		\end{figure}
+	\end{frame}
+ 
+%%%%%%%%%%%%%%%%%
+% Section 4: Threshold FHE Insecurity
+%%%%%%%%%%%%%%%%%
+\section{(In)security of Threshold FHE:\\ {\normalsize Practical \& Theoretical Results}}
+
+    %%%%%
+    % (In)security of Threshold FHE
+    %%%%% 
+	\begin{frame}{(In)security of Threshold FHE}
+
+        Threshold FHE security: The attacker has access to partially decrypted results, so for\vspace{0.3cm}
+		\begin{itemize}
+			\item Threshold FHE scheme $\Pi$ (Setup, Enc, Eval, \textcolor{blue}{PDec}, \textcolor{blue}{FinDec}),
+			\item FHE scheme $\Pi^*$ (Setup, Enc, Eval, \text{Dec}), 
+		\end{itemize}
+        where $\text{Dec}= \Pi.\text{FinDec}_{pk} \left(\left\{\Pi.\text{PDec}_{sk_i}(\cdot)\right\}_i\right)$, \vspace{0.3cm}
+		\[\bf
+            \textbf{Threshold security of } \Pi ~\Rightarrow~ \indcpad \textbf{ security of } \Pi^*.
+        \]
+	\end{frame}
+
+    %%%%%
+    % A Hole in Noah's Ark
+    %%%%% 
+	\begin{frame}{A Hole in Noah's Ark}
+
+        Noah's Ark [WAHC:DDK+23]: CGGI-based Threshold FHE with ``Switch-and-Squash'' technique during PDec, which is
+        \begin{center}
+        essentially ``ModSwitch'' to larger modulus $2N$,
+        \end{center}
+
+        of failure probability $\mathsf{p}_\mathsf{fail} = 2^{-72.8}$ to $2^{-85.1}$.\vspace{0.3cm}\pause
+
+        Note, the underlying FHE scheme already has $\mathsf{p}_\mathsf{fail} = 2^{-40}$. 
+	\end{frame}
+ 
+%%%%%%%%%%%%%%%%%
+% Summary
+%%%%%%%%%%%%%%%%%
+
+ \section{Summary}
+    %%%%%
+    % Our Result
+    %%%%%    
+    \begin{frame}{Summary}
+    \small
+    Theoretical results: 
+    \begin{itemize}
+        \item Exact FHE schemes are also \indcpad-insecure \textcolor{blue}{unless} it has a negligible failure probability\footnote{during the whole homomorphic operations.}.\pause
+        \item Threshold FHE schemes are insecure \textcolor{blue}{unless} the underlying FHE schemes are \indcpad-secure. 
+    \end{itemize}\vspace{0.3cm}\pause
+    
+    Practical results: \krd attacks on
+        \begin{itemize}
+            \item BFV/BGV
+            \item CGGI\pause
+            \item CGGI-based Threshold FHE scheme, {Noah's Ark}\footnote{even if the underlying FHE scheme is perfectly correct!}
+        \end{itemize}\vspace{0.5cm}
+    \end{frame}
+    
+    %%%%%
+    % Thank You
+    %%%%%    
+    \begin{frame}{}
+    \begin{center}
+        {\Huge\bf Thank You!}
+    \end{center}
+    \end{frame}
+    
+    %%%%%
+    % Bibliography
+    %%%%%    
+    \setbeamertemplate{bibliography item}{\insertbiblabel}
+    \begin{frame}[t, allowframebreaks, noframenumbering, plain]{References}
+    
+    \bibliographystyle{alpha}
+    \bibliography{20240104/cryptobib/abbrev3,20240104/cryptobib/crypto,ref}
+    
+    \end{frame}
+\end{document}
