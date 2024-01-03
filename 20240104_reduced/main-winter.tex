@@ -1,6 +1,6 @@
 % Deactivate/Activate pause
-\documentclass[handout]{beamer}
-% \documentclass{beamer}
+% \documentclass[handout]{beamer}
+\documentclass{beamer}
 
 \usetheme{metropolis}
 \usepackage[ruled, lined, linesnumbered, commentsnumbered]{algorithm2e}
@@ -69,14 +69,16 @@ January, 4th, 2024.
     {\scriptsize
         \begin{tabular}{ccc}
         \underline{\bf \footnotesize $\cA$ (adversary)} & & \underline{\bf \footnotesize $\cC$ (challenger)}\\
-        &$\xxleftarrow{1111111111}{\pk}$& $(\sk, \pk) \leftarrow \keygen$, $b \leftarrow \{0,1\}$\\
-        \hdashline &&\\
-                
-        % enc/eval queries
-        \enc/\eval with \pk &&\\&&\\
+        &$\xxleftarrow{111111111111}{\pk}$& $(\sk, \pk) \leftarrow \keygen$, $b \leftarrow \{0,1\}$\\
         \hdashline &&\\
         
-        Guess bit $b$ & $\xxrightarrow{1111111111}{b'}$ & \\
+        % enc queries
+        \multirow{1}{*}{$\cO_\enc$} & $\xxrightarrow{111111111111}{\cO_\enc (m_0, m_1)}$ & \multirow{2}{*}{\shortstack{$\ct = \enc_\pk(m_b)$}}\\
+        &$\xxleftarrow{111111111111}{\ct}$ \\
+        \hdashline &&\\
+        \pause
+        
+        Guess bit $b$ & $\xxrightarrow{111111111111}{b'}$ & \\
     \end{tabular}}
     \caption{\small \indcpa security game. \label{fig:indcpa}}
 	\end{figure}
@@ -97,21 +99,23 @@ January, 4th, 2024.
         \underline{\bf \footnotesize $\cA$ (adversary)} & & \underline{\bf \footnotesize $\cC$ (challenger)}\\
         &$\xxleftarrow{1111111111}{\pk}$& $(\sk, \pk) \leftarrow \keygen$, $b \leftarrow \{0,1\}$\\
         \hdashline &&\\
-                
-        % enc/eval queries
-        \enc/\eval with \pk &&\\&&\\
+        
+        % enc queries
+        \multirow{1}{*}{$\cO_\enc$} & $\xxrightarrow{1111111111}{\cO_\enc (m_0, m_1)}$ & \multirow{2}{*}{$\ct = \enc_\pk(m_b)$}\\
+        &$\xxleftarrow{1111111111}{\ct}$ \\
         \hdashline &&\\
+        \pause
 
         % dec queries
-        \textcolor{blue}{\dec query} & \textcolor{blue}{$\xxrightarrow{1111111111}{\ct}$}&\\
-        &\textcolor{blue}{$\xxleftarrow{1111111111}{m}$}&\\
+        \textcolor{blue}{\dec query} & \textcolor{blue}{$\xxrightarrow{1111111111}{\ct}$}& \multirow{2}{*}{$m = \dec_\sk(\ct)$}\\
+        &\textcolor{blue}{$\xxleftarrow{1111111111}{m}$} \\
         \hdashline &&\\
         
         Guess bit $b$ & $\xxrightarrow{1111111111}{b'}$ & \\
     \end{tabular}}
 	\end{figure}\pause
     ~~~but only to  \textcolor{blue}{legitimate} {$\ct$}'s. \textcolor{blue}{How?}
-    \vspace{0.5cm}\pause
+    \vspace{0.3cm}\pause
     
     A definitional tool for \textcolor{blue}{legitimate} ciphertext is required:
     \begin{center}
@@ -234,7 +238,7 @@ January, 4th, 2024.
         \hdashline &&\\
         
         Guess $\sk$ & $\xxrightarrow{1111111111}{\sk'}$ & \\
-    \end{tabular}}\vspace{-0.25cm}
+    \end{tabular}} \vspace{-0.25cm}
     \caption{\krd security game~\cite{EC:LiMic21}.}
 	\end{figure}
     \end{frame}
@@ -243,12 +247,12 @@ January, 4th, 2024.
     % Li-Micciancio
     %%%%%    
     \begin{frame}{Prior Works}
-    \small
+
     {\bf Note}, for FHEs,
         \begin{itemize}
             \item \indcpad security $\Rightarrow$ \indcpa security, 
             \item \indcpad security $\Rightarrow$ \krd security.
-        \end{itemize}\vspace{0.2cm}\pause
+        \end{itemize}\vspace{0.5cm}\pause
     
 	{\bf Li-Micciancio~\cite{EC:LiMic21}}: 
     \begin{itemize}
@@ -257,12 +261,41 @@ January, 4th, 2024.
         \begin{itemize}
             \item CKKS \krd attack: from additional information (error)
         \end{itemize}
-    \end{itemize}\vspace{0.2cm}\pause
-
+    \end{itemize}
+    \end{frame}
+    
+    %%%%%
+    % Li-Micciancio
+    %%%%%    
+    \begin{frame}{Prior Works}
+    
     {\bf In the community}: 
     \begin{center}
         Exact FHEs, such as BFV/BGV,\\ and DM/CGGI schemes, are \indcpad secure!
-    \end{center}
+    \end{center}\vspace{0.3cm}
+
+        \begin{figure}[h]
+            \centering
+            \includegraphics[width=0.7\linewidth]{diagram 1.png}
+            \caption{The belief. }
+        \end{figure}
+    \end{frame}
+    
+    %%%%%
+    % Li-Micciancio
+    %%%%%    
+    \begin{frame}{Prior Works}
+    
+    {\bf In the community}: 
+    \begin{center}
+        Exact FHEs, such as BFV/BGV,\\ and DM/CGGI schemes, are \indcpad secure!
+    \end{center}\vspace{0.1cm}
+
+        \begin{figure}[h]
+            \centering
+            \includegraphics[width=0.7\linewidth]{diagram 2.png}
+            \caption{Recent attack. }
+        \end{figure}
     \end{frame}
 
     %%%%%
@@ -272,6 +305,8 @@ January, 4th, 2024.
     \begin{frame}{}
     \begin{center}
         {\Huge \bf Really?}
+        % \vspace{1cm}\pause
+        % {\large No, if the correctness is not sufficiently close to $1$.}
     \end{center} 
     \end{frame}
 
@@ -285,26 +320,27 @@ January, 4th, 2024.
     %%%%%    
     \begin{frame}{What if?}
 
-    What if \textcolor{blue}{$\dec_\sk(\enc_\pk(m)) \neq m$}, a.k.a. decryption fails?\pause
+    What if \textcolor{blue}{$\dec_\sk(\enc_\pk(m)) \neq m$}, a.k.a. decryption fails?\vspace{0.2cm}\pause
 
     What if \textcolor{blue}{$\dec_\sk(\eval_\pk(C, \ct_1, \cdots, \ct_k))$}
 
     \hfill \textcolor{blue}{$\neq C(\dec_\sk(\ct_1), \dots, \dec_\sk(\ct_k))$},
-    a.k.a. evaluation fails? \vspace{0.5cm}\pause
+    a.k.a. evaluation fails? \vspace{0.4cm}\pause
 
-    $\Rightarrow$ $\cO_\enc$/$\cO_\eval$ will record $S[i] = (m_0, m_1, \ct)$, which satisfies 
+    $\Rightarrow$ $\cO_\enc$/$\cO_\eval$ will record $(m_0, m_1, \ct)$, which satisfies 
     \[
         \dec_\sk(\ct) \neq m_b.
     \]\pause
 
-    Can an attacker make a record $S[i] = (m_0, m_1, \ct)$, which satisfies $m_0 = m_1$, but $\dec_\sk(\ct) \neq m_0 (=m_1)$?\vspace{0.3cm}\pause
+    Can we make a record satisfying $m_0 = m_1$, but $\dec_\sk(\ct) \neq m_0$?\vspace{0.3cm}\pause
         
-    And, even the decrypted result depends on $b$? 
+    And, even, $\dec_\sk(\ct)$ depends on $b$? 
     \end{frame}
 
     \begin{frame}{}
     \begin{center}
-        {\Large \bf Yes, with the failing probability!}
+        {\Large \bf Yes,\\\vspace{0.2cm} 
+        with the failing probability!}
     \end{center} 
     \end{frame}
     
@@ -392,9 +428,12 @@ January, 4th, 2024.
         \item Cost: $2N$ \enc, $N$ \eval, $N$ \dec queries.
     \end{itemize}\pause\vspace{0.3cm}
     
-    Instead, let's use a composed one $C(x_0, \dots, x_{N}) = (x_0 \wedge x_1) \vee \dots \vee (x_0 \wedge x_N)$:
+    Instead, we can use a composed circuit: 
+    \[
+        C(x_0, \dots, x_{N}) = (x_0 \wedge x_1) \vee \dots \vee (x_0 \wedge x_N)
+    \]
     \begin{itemize}
-        \item Advantage: $\approx \frac{1}{2} + \frac{Np}{2}$,
+        \item Advantage: $\frac{1}{2} + \frac{Np}{2}$,
         \item Cost: $(N+1)$ \enc, but only 1 \eval, and 1 \dec queries!
     \end{itemize}
     }
@@ -443,7 +482,7 @@ January, 4th, 2024.
     {
     \underline{\bf Boosting technique 2:} Replace $\ct_i$'s by the evaluated ciphertexts with \textcolor{blue}{higher (possibly the highest) probability $p^*$}($\gg p$): \pause\vspace{0.3cm}
     
-    Advantage bumps up to $$1 + Np^*/2 \gg 1 + Np/2,$$
+    Advantage bumps up to $$\frac{1}{2} + \frac{Np^*}{2} ~ \left(\gg \frac{1}{2} + \frac{Np}{2}\right),$$
     with many \enc, but again, only 1 \eval, and 1 \dec queries\footnote{replace $C$ by $C \circ (id, C^*, \dots, C^*): \cC^{Nk+1} \rightarrow \cC$, where $C^*$ is the circuit with $k$ fresh ciphertexts as inputs and outputs a ciphertext having failing probability $p^*$}.
     }
 	\end{frame}
@@ -454,7 +493,9 @@ January, 4th, 2024.
 	\begin{frame}{Extending the \indcpad Attack}
  
     {
-    \underline{\bf Extension:} The attack can be easily extended from binary FHEs to \textcolor{blue}{general integer FHEs}, as $\{0, 1\}$ can be embedded in any ring\footnote{e.g. 0 and 1 instead of \texttt{F} and \texttt{T}; \mult and \add instead of $\wedge$ and $\vee$.}.
+    \underline{\bf Extension:} The attack can be easily extended from binary FHEs to \textcolor{blue}{general integer FHEs}, as $\{0, 1\}$ can be embedded in any ring.\vspace{0.5cm}\pause
+    
+    E.g., use 0 and 1 instead of \texttt{F} and \texttt{T}; with \mult and \add instead of $\wedge$ and $\vee$, respectively. 
     }
 	\end{frame}
 
@@ -462,18 +503,21 @@ January, 4th, 2024.
     % IND-CPA^D security conclusion
     %%%%% 
 	\begin{frame}{Conclusion}
-    Thus, the \textcolor{blue}{failing probability} of any FHE ciphertext \textcolor{blue}{should be negligible} along the whole homomorphic operations; HOWEVER,\vspace{0.3cm}\pause
+    Thus, the \textcolor{blue}{failing probability} of any \indcpad-secure FHE ciphertext \textcolor{blue}{should be negligible} along the whole homomorphic operations. \vspace{0.1cm}\pause
+    \begin{center}
+        HOWEVER,
+    \end{center}
     
     \begin{itemize}
         \item {\bf DM/CGGI}
             \begin{itemize}
-                \item {TFHE-rs}: $\mathsf{p}_\mathsf{fail} =2^{-40}$ (DEFAULT\_PARAMETERS set)
-                \item {{Concrete-Python}}: $\mathsf{p}_\mathsf{fail} =2^{-17}$ (default setting)
+                \item {TFHE-rs}: $\mathsf{p}_\mathsf{fail} =2^{-40}$ (DEFAULT\_PARAMETERS set)\pause
+                \item {{Concrete-Python}}: $\mathsf{p}_\mathsf{fail} =2^{-17}$ (default setting)\pause
                 \item {Dahl et al.~\cite{cryptoeprint:2023/815}}: $\mathsf{p}_\mathsf{fail} =2^{-13.9}$
             \end{itemize}\vspace{0.3cm}\pause
-        \item {\bf BFV/BGV}: Recent average-case approaches try to lower the correctness for more multiplicative levels:
+        \item {\bf BFV/BGV}: Recent average-case approaches try to lower the correctness for more multiplicative levels:\pause
             \begin{itemize}
-                \item {Murphy, Player~\cite{EPRINT:MurPla19a}}: $\mathsf{p}_\mathsf{fail} =0.001 \approx 2^{-10}$
+                \item {Murphy and Player~\cite{EPRINT:MurPla19a}}: $\mathsf{p}_\mathsf{fail} =0.001 \approx 2^{-10}$\pause
                 \item {Biasioli et al.~\cite{cryptoeprint:2023/600}}: $\mathsf{p}_\mathsf{fail} =2^{-36} \sim 2^{-80}$
             \end{itemize}
     \end{itemize}\vspace{0.3cm}\pause
@@ -539,10 +583,10 @@ January, 4th, 2024.
     %%%%%
     % KR^D Attack on BFV (figure)
     %%%%%    
-    \begin{frame}{\krd Attack on CKKS/BFV/BGV} 
+    \begin{frame}{\krd Attack on BFV} 
 
     {\small
-    {\bf Iterative addition attack\footnote{\scriptsize similar to the attack by Guo et al.~\cite{294637}, targeted Li and Micciancio's \indcpad-secure CKKS~\cite{C:LMSS22}, implemented in OpenFHE.}}: After $k$ additions, error $e$ blows up to $2^ke$, which will be decrypted to
+    {\bf Iterative addition attack\footnote{\scriptsize similar to the attack by Guo et al.~\cite{294637}, targeted Li and Micciancio's \indcpad-secure CKKS, implemented in OpenFHE~\cite{C:LMSS22}.}}: After $k$ additions, error $e$ blows up to $2^ke$, which will be decrypted to
     \[
         \round{({2^ke \bmod q})/{\Delta}} \approx e,
     \]
@@ -601,110 +645,37 @@ January, 4th, 2024.
 
     For a typical choice of OpenFHE 128-bit secure parameter set, \vspace{0.3cm}
     
-    $N = 2^{12}$, $q=2^{60}$, $t = 2^{16}+1$, $\operatorname{std.dev}(e) = 2^{7.41}$, and thus $\Delta = \round{q/t} = 2^{44}-\varepsilon$, for some small $\varepsilon$, \vspace{0.3cm}
+    $N = 2^{12}$, $q=2^{60}$, $t = 2^{16}+1$, $\operatorname{std.dev}(e) = 2^{7.41}$, and $\Delta = \round{q/t} = 2^{44}-\varepsilon$, for some small $\varepsilon$, \vspace{0.3cm}
     
     we could experimentally reveal the exact error with $k=44$ iterations as
     \[
         \round{({2^{44}\vece \bmod 2^{60}})/(2^{44}-\varepsilon)} = \vece + \round{\varepsilon\vece / (2^{44}-\varepsilon)} = \vece,
     \]
-    unless $\Vert\vece\Vert_\infty$ is too large. 
+    unless $\Vert\vece\Vert_\infty$ is too huge. 
     }
     \end{frame}
 
- %    %%%%%
- %    % CGGI
- %    %%%%%  
- %    \begin{frame}{}
- %    \begin{center}
- %        {\Huge \bf CGGI}
- %    \end{center} 
- %    \end{frame}   
-    
- %    %%%%%
- %    % CGGI Modulus Switch
- %    %%%%%
-	% \begin{frame}{CGGI Modulus Switch}
-	% 	\begin{center}
-	% 		\begin{tikzpicture}[node distance=3.5cm,>=latex']
-				
-	% 			\tikzstyle{block} = [rectangle, draw, text centered, text width=3cm, minimum height=1.5cm, node distance=4cm, rounded corners]
-	% 			\tikzstyle{arrow} = [->,>=latex']
-				
-	% 			\node [block, fill=blue!30] (lwe) {$\mathsf{LWE}_{q \approx 2^{32}}$\\ Var$(\vece) = \sigma^2$};
-	% 			\node [block, right of=lwe, fill=orange!30, rounded corners] (bootstrap) {Modulus\\ Switch};
-	% 			\node [block, right of=bootstrap, fill=blue!30] (lwebr) {\small $\mathsf{LWE}_{2 N \approx 2^{10}}$\\Var$(\vece + \vece_{MS}) = \sigma^2 + \sigma_{MS}^2$};
-				
-	% 			\draw [arrow] (lwe) -- (bootstrap);
-	% 			\draw [arrow] (bootstrap) -- (lwebr);
-				
-	% 		\end{tikzpicture}
-	% 	\end{center}
- %        \[
- %            \ct \mapsto \round{\ct\cdot 2N / q}
- %        \]
-  
-	% 	Modulus Switching error: $\vece_{MS} := \langle \vec{e}_{MS}, \sk \rangle$, $\operatorname{Var}(\vec{e}_{MS}) = \sigma_{MS}^2 \gtrsim \sigma^2$. \vspace{0.3cm}\pause
-
- %        Modulus Switching failure: $\vece + \langle \vec{e}_{MS}, \sk \rangle > t$, for a threshold $t$, with probability 
- %        \[
- %        \mathsf{p}_\mathsf{fail} = \operatorname{erfc}\left(t/{\sqrt{2 (\sigma^2 + \sigma_{MS}^2)} }\right) \approx 2^{-40}.
- %        \]
-	% \end{frame}
-
- %    %%%%%
- %    % CGGI KR^D attack
- %    %%%%%
-	% \begin{frame}{$KR^D$ attack on CGGI}
-
- %    {\small \vspace{-0.1cm}
-	% 	\begin{block}{Lemma.}\vspace{0.1cm}
-	% 		Let~$Y_i = \langle \vec{e}_{MS}, \sk \rangle - e_{MS, i} \cdot \sk_i$.
-	% 		The probability density function~$f$ of~$e_{MS,i}$ conditioned on the event $\langle \vec{e}_{MS}, \sk \rangle + e > t$ (i.e. failure) satisfies, for all~$x \in [-1/2,1/2]$: 
-	% 		\[
-	% 		f(x) = \left\{
-	% 		\begin{array}{ll}
-	% 			\frac{\Pr[x + Y_i + e > t]}{\Pr[ \langle \vec{e}_{MS}, \sk \rangle + e > t]}& \text{if } \sk_i=\textcolor{blue}{1}, \\
-	% 			1& \text{if } \sk_i = \textcolor{orange}{0}.
-	% 		\end{array}\right.\]
-	% 	\end{block}\vspace{-0.3cm}\pause
- %    }
-
- %        \begin{figure}[h]
- %            \centering
- %            \includegraphics[width=0.4\linewidth]{slope.png}
- %            \caption{Distribution of $e_{MS, i}$ conditioned on decryption failures (pdf $f$). }
- %        \end{figure}
-	% \end{frame}
- 
-	% \begin{frame}{Experimental results}
-	% 	\begin{figure}
-	% 		\centering
-	% 		\includegraphics[width=0.7\linewidth]{exp}
-	% 		\caption{Performance of the attack with $f$ decryption failing ciphertexts for experimental result for a \textcolor{cyan}{custom parameter} set and simulated result for \textcolor{magenta}{TFHE-rs DEFAULT\_PARAMETERS} set.}
-	% 		\label{fig:tkrd}
-	% 	\end{figure}
-	% \end{frame}
  
 %%%%%%%%%%%%%%%%%
 % Section 4: Threshold FHE Insecurity
 %%%%%%%%%%%%%%%%%
 \section{(In)security of Threshold FHE:\\ {\normalsize Theoretical Results}}
 
-    %%%%%
-    % (In)security of Threshold FHE
-    %%%%% 
-	\begin{frame}{(In)security of Threshold FHE}
+ %    %%%%%
+ %    % (In)security of Threshold FHE
+ %    %%%%% 
+	% \begin{frame}{(In)security of Threshold FHE}
 
-        Threshold FHE security: The attacker has access to partially decrypted results, so for\vspace{0.3cm}
-		\begin{itemize}
-			\item Threshold FHE scheme $\Pi$ (Setup, Enc, Eval, \textcolor{blue}{PDec}, \textcolor{blue}{FinDec}),
-			\item FHE scheme $\Pi^*$ (Setup, Enc, Eval, \text{Dec}), 
-		\end{itemize}
-        where $\text{Dec}= \Pi.\text{FinDec}_{pk} \left(\left\{\Pi.\text{PDec}_{sk_i}(\cdot)\right\}_i\right)$, \vspace{0.3cm}
-		\[\bf
-            \textbf{Threshold security of } \Pi ~\Rightarrow~ \indcpad \textbf{ security of } \Pi^*.
-        \]
-	\end{frame}
+ %        Threshold FHE security: The attacker has access to partially decrypted results, so for\vspace{0.3cm}
+	% 	\begin{itemize}
+	% 		\item Threshold FHE scheme $\Pi$ (Setup, Enc, Eval, \textcolor{blue}{PDec}, \textcolor{blue}{FinDec}),
+	% 		\item FHE scheme $\Pi^*$ (Setup, Enc, Eval, \text{Dec}), 
+	% 	\end{itemize}
+ %        where $\text{Dec}= \Pi.\text{FinDec}_{pk} \left(\left\{\Pi.\text{PDec}_{sk_i}(\cdot)\right\}_i\right)$, \vspace{0.3cm}
+	% 	\[\bf
+ %            \textbf{Threshold security of } \Pi ~\Rightarrow~ \indcpad \textbf{ security of } \Pi^*.
+ %        \]
+	% \end{frame}
 
     %%%%%
     % (In)security of Threshold FHE
@@ -723,7 +694,7 @@ January, 4th, 2024.
 	\end{frame}
 
     %%%%%
-    % (In)security of Threshold FHE
+    % (In)security of Threshold FHE (reduction)
     %%%%% 
 	\begin{frame}{(In)security of Threshold FHE}
 
@@ -732,12 +703,12 @@ January, 4th, 2024.
 			\item Threshold FHE scheme $\Pi$ (Setup, Enc, Eval, \textcolor{blue}{PDec}, \textcolor{blue}{FinDec}),
 			\item FHE scheme $\Pi^*$ (Setup, Enc, Eval, \text{Dec}), 
 		\end{itemize}
-        where $\text{Dec}= \Pi.\text{FinDec}_{pk} \left(\left\{\Pi.\text{PDec}_{sk_i}(\cdot)\right\}_i\right)$, \vspace{0.3cm}
+        where $\Pi^*.\text{Dec} = \Pi.\text{FinDec}_{pk} \left(\left\{\Pi.\text{PDec}_{sk_i}(\cdot)\right\}_i\right)$, \vspace{0.3cm}
 		\[\bf
             \textbf{Threshold {\normalfont IND-}security of } \Pi ~\Rightarrow~ \indcpad \textbf{ security of } \Pi^*.
-        \]\vspace{0.3cm}
+        \]\vspace{0.3cm}\pause
 
-        Note, the underlying FHE scheme of Noah's Ark~\cite{cryptoeprint:2023/815}, a CGGI-based Threshold FHE scheme, has $\mathsf{p}_\mathsf{fail} = 2^{-40}$ :(
+        Note, the underlying FHE scheme of Noah's Ark~\cite{cryptoeprint:2023/815}, a CGGI-based Threshold FHE scheme, has $\mathsf{p}_\mathsf{fail} = 2^{-40}$ \textcolor{blue}{:(}
 	\end{frame}
  
  %    %%%%%
@@ -761,7 +732,7 @@ January, 4th, 2024.
 
  \section{Summary}
     %%%%%
-    % Our Result
+    % Summary
     %%%%%    
     \begin{frame}{Summary}
     \small
@@ -777,6 +748,18 @@ January, 4th, 2024.
             \item CGGI (not included)
             \item CGGI-based Threshold FHE scheme, {Noah's Ark}\footnote{even if the underlying FHE scheme is perfectly correct!} (not included)
         \end{itemize}\vspace{0.5cm}
+    \end{frame}
+    
+    %%%%%
+    % Summary (Diagram)
+    %%%%%    
+    \begin{frame}{Summary}
+
+        \begin{figure}[h]
+            \centering
+            \includegraphics[width=0.7\linewidth]{diagram 3.png}
+            \caption{Our attack. }
+        \end{figure}
     \end{frame}
     
     %%%%%
@@ -798,4 +781,117 @@ January, 4th, 2024.
     \bibliography{20240104_reduced/cryptobib/abbrev3,20240104_full_version/cryptobib/crypto,ref}
     
     \end{frame}
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    %%%%%
+    % CGGI
+    %%%%%  
+    \begin{frame}{}
+    \begin{center}
+        {\Huge \bf CGGI}
+    \end{center} 
+    \end{frame}   
+    
+    %%%%%
+    % CGGI Modulus Switch
+    %%%%%
+	\begin{frame}{CGGI Modulus Switch}
+		\begin{center}
+			\begin{tikzpicture}[node distance=3.5cm,>=latex']
+				
+				\tikzstyle{block} = [rectangle, draw, text centered, text width=3cm, minimum height=1.5cm, node distance=4cm, rounded corners]
+				\tikzstyle{arrow} = [->,>=latex']
+				
+				\node [block, fill=blue!30] (lwe) {$\mathsf{LWE}_{q \approx 2^{32}}$\\ Var$(\vece) = \sigma^2$};
+				\node [block, right of=lwe, fill=orange!30, rounded corners] (bootstrap) {Modulus\\ Switch};
+				\node [block, right of=bootstrap, fill=blue!30] (lwebr) {\small $\mathsf{LWE}_{2 N \approx 2^{10}}$\\Var$(\vece + \vece_{MS}) = \sigma^2 + \sigma_{MS}^2$};
+				
+				\draw [arrow] (lwe) -- (bootstrap);
+				\draw [arrow] (bootstrap) -- (lwebr);
+				
+			\end{tikzpicture}
+		\end{center}
+        \[
+            \ct \mapsto \round{\ct\cdot 2N / q}
+        \]
+  
+		Modulus Switching error: $\vece_{MS} := \langle \vec{e}_{MS}, \sk \rangle$, $\operatorname{Var}(\vec{e}_{MS}) = \sigma_{MS}^2 \gtrsim \sigma^2$. \vspace{0.3cm}\pause
+
+        Modulus Switching failure: $\vece + \langle \vec{e}_{MS}, \sk \rangle > t$, for a threshold $t$, with probability 
+        \[
+        \mathsf{p}_\mathsf{fail} = \operatorname{erfc}\left(t/{\sqrt{2 (\sigma^2 + \sigma_{MS}^2)} }\right) \approx 2^{-40}.
+        \]
+	\end{frame}
+
+    %%%%%
+    % CGGI KR^D attack
+    %%%%%
+	\begin{frame}{$KR^D$ attack on CGGI}
+
+    {\small \vspace{-0.1cm}
+		\begin{block}{Lemma.}\vspace{0.1cm}
+			Let~$Y_i = \langle \vec{e}_{MS}, \sk \rangle - e_{MS, i} \cdot \sk_i$.
+			The probability density function~$f$ of~$e_{MS,i}$ conditioned on the event $\langle \vec{e}_{MS}, \sk \rangle + e > t$ (i.e. failure) satisfies, for all~$x \in [-1/2,1/2]$: 
+			\[
+			f(x) = \left\{
+			\begin{array}{ll}
+				\frac{\Pr[x + Y_i + e > t]}{\Pr[ \langle \vec{e}_{MS}, \sk \rangle + e > t]}& \text{if } \sk_i=\textcolor{blue}{1}, \\
+				1& \text{if } \sk_i = \textcolor{orange}{0}.
+			\end{array}\right.\]
+		\end{block}\vspace{-0.3cm}\pause
+    }
+
+        \begin{figure}[h]
+            \centering
+            \includegraphics[width=0.4\linewidth]{slope.png}
+            \caption{Distribution of $e_{MS, i}$ conditioned on decryption failures (pdf $f$). }
+        \end{figure}
+	\end{frame}
+ 
+	\begin{frame}{Experimental results}
+		\begin{figure}
+			\centering
+			\includegraphics[width=0.7\linewidth]{exp}
+			\caption{Performance of the attack (score: $\Vert \vecs - \vecs_\mathsf{est} \Vert_1$) with ``$f$'' failing ciphertexts. Experimental result for a \textcolor{cyan}{custom parameter} set and a simulated result for \textcolor{magenta}{TFHE-rs DEFAULT\_PARAMETERS} set is given.}
+			\label{fig:tkrd}
+		\end{figure}
+	\end{frame}
+
+    %%%%%
+    % CGGI
+    %%%%%  
+    \begin{frame}{}
+    \begin{center}
+        {\Large \bf Noah's Ark, a Threshold FHE}
+    \end{center} 
+    \end{frame}   
+    
+    %%%%%
+    % A Hole in Noah's Ark
+    %%%%% 
+	\begin{frame}{A Hole in Noah's Ark}
+
+        Noah's Ark~\cite{cryptoeprint:2023/815}: CGGI-based Threshold FHE with ``Switch-and-Squash'' technique during PDec, which is
+        \begin{center}
+        essentially ``ModSwitch'' to larger modulus $2N$,
+        \end{center}
+
+        of failure probability $\mathsf{p}_\mathsf{fail} = 2^{-72.8}$ to $2^{-85.1}$.\vspace{0.3cm}\pause
+
+        Thus, even if the underlying FHE scheme is perfectly correct, the ``Switch-and-Squash'' technique makes it insecure.
+	\end{frame}
+    
+    %%%%%
+    % Future Works?
+    %%%%% 
+	\begin{frame}{Future Works?}
+
+        \begin{itemize}
+            \item Security of Threshold/Multi-Party FHE
+            \item Circuit privacy and \indcpad security
+            \item Securing Threshold/Multi-Party FHE with sanitization
+        \end{itemize}
+	\end{frame}
 \end{document}
